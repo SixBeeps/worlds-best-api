@@ -1,7 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
+import { appendFile } from 'fs';
+import { promisify } from 'util';
+const appendFilePromise = promisify(appendFile);
 
 let activeTokens = []
 const expirationTime = 1000 * 30;
+const admin_key = "qxtvR2Xq";
 
 const getKeyFile = async () =>
   await (
@@ -9,6 +13,12 @@ const getKeyFile = async () =>
       ("http://localhost:3000/db/keys.txt")
     )
   ).text();
+
+const addKey = async (key) => {
+	await (
+		appendFilePromise("public/db/keys.txt", key + "\n")
+	)
+}
 
 const generateToken = (owner) => {
 	return {
@@ -50,4 +60,27 @@ export function redeemToken(token: string) {
   } else {
 	return false;
   }
+}
+
+export function isAdminKey(key: string) {
+  return key == admin_key;
+}
+
+export function getActiveTokens() {
+  return activeTokens.map(t => t.token);
+}
+
+export async function registerKey(key: string) {
+	if (await isKeyValid(key)) {
+		// Key already exists
+		console.log(`Key ${key} already exists`);
+		return false;
+	} else {
+		// Key does not exist, try adding it
+		addKey(key).then(() => {
+			return true;
+		}).catch(() => {
+			return false;
+		});
+	}
 }

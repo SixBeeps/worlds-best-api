@@ -33,3 +33,4 @@ yarn-error.log*
 
 # yarn
 /.yarn
+.vercel
